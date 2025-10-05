@@ -1,0 +1,129 @@
+-- =========================================
+-- DATABASE SETUP
+-- =========================================
+CREATE DATABASE EmployeeTaskDB;
+GO
+
+USE EmployeeTaskDB;
+GO
+
+-- =========================================
+-- TABLE: Roles
+-- =========================================
+CREATE TABLE Roles (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Permissions TEXT NULL
+);
+
+-- =========================================
+-- TABLE: Departments
+-- =========================================
+CREATE TABLE Departments (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Description TEXT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE()
+);
+
+-- =========================================
+-- TABLE: Employees
+-- =========================================
+CREATE TABLE Employees (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(150) UNIQUE NOT NULL,
+    PasswordHash VARCHAR(255) NOT NULL,  -- for JWT authentication
+    RoleId INT NOT NULL,
+    DepartmentId INT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+    IsActive BIT DEFAULT 1,
+    FOREIGN KEY (RoleId) REFERENCES Roles(Id),
+    FOREIGN KEY (DepartmentId) REFERENCES Departments(Id)
+);
+
+-- =========================================
+-- TABLE: Projects
+-- =========================================
+CREATE TABLE Projects (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Name VARCHAR(150) NOT NULL,
+    Description TEXT NULL,
+    DepartmentId INT NULL,
+    StartDate DATETIME,
+    EndDate DATETIME,
+    Budget DECIMAL(10,2),
+    Progress DECIMAL(5,2) DEFAULT 0,
+    Status VARCHAR(50) DEFAULT 'Pending',
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (DepartmentId) REFERENCES Departments(Id)
+);
+
+-- =========================================
+-- TABLE: Tasks
+-- =========================================
+CREATE TABLE Tasks (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Title VARCHAR(150) NOT NULL,
+    Description TEXT NULL,
+    ProjectId INT NOT NULL,
+    EmployeeId INT NULL,  -- AssignedTo
+    CreatedBy INT NULL,
+    Status VARCHAR(50) DEFAULT 'Pending',
+    Priority VARCHAR(50) DEFAULT 'Medium',
+    DueDate DATETIME NULL,
+    Progress DECIMAL(5,2) DEFAULT 0,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (ProjectId) REFERENCES Projects(Id),
+    FOREIGN KEY (EmployeeId) REFERENCES Employees(Id),
+    FOREIGN KEY (CreatedBy) REFERENCES Employees(Id)
+);
+
+-- =========================================
+-- TABLE: TaskTracking
+-- =========================================
+CREATE TABLE TaskTracking (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    TaskId INT NOT NULL,
+    UpdatedBy INT NOT NULL,
+    OldStatus VARCHAR(50),
+    NewStatus VARCHAR(50),
+    OldProgress DECIMAL(5,2),
+    NewProgress DECIMAL(5,2),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
+    Remarks TEXT NULL,
+    FOREIGN KEY (TaskId) REFERENCES Tasks(Id),
+    FOREIGN KEY (UpdatedBy) REFERENCES Employees(Id)
+);
+
+-- =========================================
+-- OPTIONAL TABLE: Timesheets
+-- =========================================
+CREATE TABLE Timesheets (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    EmployeeId INT NOT NULL,
+    TaskId INT NOT NULL,
+    HoursWorked DECIMAL(5,2) NOT NULL,
+    Date DATETIME DEFAULT GETDATE(),
+    Remarks TEXT NULL,
+    FOREIGN KEY (EmployeeId) REFERENCES Employees(Id),
+    FOREIGN KEY (TaskId) REFERENCES Tasks(Id)
+);
+
+-- =========================================
+-- OPTIONAL TABLE: Comments
+-- =========================================
+CREATE TABLE Comments (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    TaskId INT NOT NULL,
+    EmployeeId INT NOT NULL,
+    CommentText TEXT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (TaskId) REFERENCES Tasks(Id),
+    FOREIGN KEY (EmployeeId) REFERENCES Employees(Id)
+);
+GO
