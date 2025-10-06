@@ -1,0 +1,64 @@
+-- =========================================
+-- INSERTION QUERIES
+-- =========================================
+USE EmployeeTaskDatabase;
+GO
+
+-------------------------------------------
+-- 1. INSERT DATA INTO EMPLOYEES
+-------------------------------------------
+INSERT INTO Employees (Name, Email, PasswordHash) VALUES
+('Alice Johnson', 'alice.j@company.com', 'hashed_pass_123'),
+('Bob Smith', 'bob.s@company.com', 'hashed_pass_456'),
+('Charlie Brown', 'charlie.b@company.com', 'hashed_pass_789');
+GO
+
+-------------------------------------------
+-- 2. INSERT DATA INTO PROJECTS
+-------------------------------------------
+INSERT INTO Projects (Name, Description, StartDate, EndDate, Budget, Status) VALUES
+('Q3 Website Redesign', 'Complete overhaul of the public-facing website for modern design and performance.', '2025-07-01', '2025-09-30', 25000.00, 'In Progress'),
+('Internal Tool Automation', 'Develop a script to automate weekly report generation.', '2025-08-15', '2025-10-31', 5000.00, 'Pending'),
+('Server Migration to Cloud', 'Move all legacy servers to Azure cloud infrastructure.', '2025-10-01', '2026-03-15', 50000.00, 'Planning');
+GO
+
+-------------------------------------------
+-- 3. INSERT DATA INTO TASKS
+--    (References Employee and Project IDs)
+-------------------------------------------
+
+-- NOTE: The Id values (1, 2, 3) used below assume the previous INSERT statements
+-- auto-generated these IDs for Employees and Projects, which is standard behavior
+-- for INT IDENTITY(1,1).
+
+-- Task 1: Assigned to Alice (ID 1), Created by Bob (ID 2), part of Project 1
+INSERT INTO Tasks (Title, Description, ProjectId, EmployeeId, CreatedBy, Status, Priority, DueDate, Progress) VALUES
+('Design Mockups for Homepage', 'Create three different mockups for the new website homepage layout.', 
+ 1, -- ProjectId: Q3 Website Redesign
+ 1, -- EmployeeId: Alice Johnson
+ 2, -- CreatedBy: Bob Smith
+ 'In Progress', 'High', '2025-07-20', 50.00);
+
+-- Task 2: Assigned to Bob (ID 2), Created by Alice (ID 1), part of Project 1
+INSERT INTO Tasks (Title, Description, ProjectId, EmployeeId, CreatedBy, Status, Priority, DueDate) VALUES
+('Develop Frontend Framework', 'Set up React/Vue framework and configure routing for Project 1.', 
+ 1, -- ProjectId: Q3 Website Redesign
+ 2, -- EmployeeId: Bob Smith
+ 1, -- CreatedBy: Alice Johnson
+ 'Pending', 'High', '2025-08-05');
+
+-- Task 3: Assigned to Charlie (ID 3), Created by Bob (ID 2), part of Project 2
+INSERT INTO Tasks (Title, Description, ProjectId, EmployeeId, CreatedBy, Status, Priority, DueDate) VALUES
+('Analyze Existing Report Logic', 'Document the steps and data sources used in the current manual reporting process.', 
+ 2, -- ProjectId: Internal Tool Automation
+ 3, -- EmployeeId: Charlie Brown
+ 2, -- CreatedBy: Bob Smith
+ 'To Do', 'Medium', '2025-09-01');
+
+-- Task 4: Unassigned, Created by Alice (ID 1), part of Project 3
+INSERT INTO Tasks (Title, Description, ProjectId, CreatedBy, Status, Priority, DueDate) VALUES
+('Audit Cloud Provider Costs', 'Review and estimate costs for running current workloads on Azure.', 
+ 3, -- ProjectId: Server Migration to Cloud
+ 1, -- CreatedBy: Alice Johnson
+ 'Pending', 'Medium', '2025-11-01');
+GO

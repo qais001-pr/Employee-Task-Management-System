@@ -6,15 +6,18 @@ exports.getTasks = async (req, res) => {
     const result = await sql.query`
       SELECT 
         t.*, 
-        e.Name AS AssignedTo, 
+        e.Name AS AssignedToName, 
+        cb.Name AS CreatedByName,
         p.Name AS ProjectName
       FROM Tasks t
       LEFT JOIN Employees e ON t.EmployeeId = e.Id
+      LEFT JOIN Employees cb ON t.CreatedBy = cb.Id -- Join for CreatedBy name
       LEFT JOIN Projects p ON t.ProjectId = p.Id
       ORDER BY t.CreatedAt DESC
     `;
     res.json(result.recordset);
   } catch (error) {
+    console.error('Error fetching tasks:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -26,10 +29,12 @@ exports.getTaskById = async (req, res) => {
     const result = await sql.query`
       SELECT 
         t.*, 
-        e.Name AS AssignedTo, 
+        e.Name AS AssignedToName, 
+        cb.Name AS CreatedByName,
         p.Name AS ProjectName
       FROM Tasks t
       LEFT JOIN Employees e ON t.EmployeeId = e.Id
+      LEFT JOIN Employees cb ON t.CreatedBy = cb.Id -- Join for CreatedBy name
       LEFT JOIN Projects p ON t.ProjectId = p.Id
       WHERE t.Id = ${id}
     `;
@@ -40,6 +45,7 @@ exports.getTaskById = async (req, res) => {
 
     res.json(result.recordset[0]);
   } catch (error) {
+    console.error('Error fetching task by ID:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -47,18 +53,45 @@ exports.getTaskById = async (req, res) => {
 // 📍 Create a new task
 exports.createTask = async (req, res) => {
   try {
-    const { title, description, projectId, employeeId, status, priority, dueDate } = req.body;
+    const { 
+        title, 
+        description, 
+        projectId, 
+        employeeId, 
+        createdBy, // Important: should typically come from req.user.id (auth token)
+        status, 
+        priority, 
+        dueDate, 
+        progress 
+    } = req.body;
 
-    if (!title || !projectId || !status) {
-      return res.status(400).json({ message: 'Title, Project, and Status are required' });
+    if (!title || !projectId || !createdBy) {
+      return res.status(400).json({ message: 'Title, ProjectId, and CreatedBy are required' });
     }
 
-    await sql.query`
-      INSERT INTO Tasks (Title, Description, ProjectId, EmployeeId, Status, Priority, DueDate, CreatedAt)
-      VALUES (${title}, ${description}, ${projectId}, ${employeeId}, ${status}, ${priority}, ${dueDate}, GETDATE())
+    const result = await sql.query`
+      INSERT INTO Tasks (Title, Description, ProjectId, EmployeeId, CreatedBy, Status, Priority, DueDate, Progress, CreatedAt, UpdatedAt)
+      VALUES (
+        ${title}, 
+        ${description || null}, 
+        ${projectId}, 
+        ${employeeId || null}, 
+        ${createdBy},
+        ${status || 'Pending'}, 
+        ${priority || 'Medium'}, 
+        ${dueDate || null}, 
+        ${progress || 0},
+        GETDATE(), 
+        GETDATE()
+      );
+      SELECT SCOPE_IDENTITY() AS Id;
     `;
-    res.status(201).json({ message: '✅ Task created successfully' });
+    
+    const newId = result.recordset[0]?.Id;
+
+    res.status(201).json({ message: '✅ Task created successfully', taskId: newId });
   } catch (error) {
+    console.error('Error creating task:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -67,18 +100,46 @@ exports.createTask = async (req, res) => {
 exports.updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, projectId, employeeId, status, priority, dueDate } = req.body;
+    const { 
+        title, 
+        description, 
+        projectId, 
+        employeeId, 
+        status, 
+        priority, 
+        dueDate, 
+        progress 
+    } = req.body;
+
+    // Fetch existing task to ensure it exists and get current values for partial update
+    const existingTaskResult = await sql.query`SELECT * FROM Tasks WHERE Id = ${id}`;
+    if (existingTaskResult.recordset.length === 0) {
+        return res.status(404).json({ message: 'Task not found' });
+    }
+    const existingTask = existingTaskResult.recordset[0];
+    
+    // Use nullish coalescing (??) to retain the existing value if the new value is undefined or null
+    const newTitle = title ?? existingTask.Title;
+    const newDescription = description ?? existingTask.Description;
+    const newProjectId = projectId ?? existingTask.ProjectId;
+    const newEmployeeId = employeeId ?? existingTask.EmployeeId;
+    const newStatus = status ?? existingTask.Status;
+    const newPriority = priority ?? existingTask.Priority;
+    const newDueDate = dueDate ?? existingTask.DueDate;
+    const newProgress = progress ?? existingTask.Progress;
+
 
     const result = await sql.query`
       UPDATE Tasks
       SET 
-        Title = ${title},
-        Description = ${description},
-        ProjectId = ${projectId},
-        EmployeeId = ${employeeId},
-        Status = ${status},
-        Priority = ${priority},
-        DueDate = ${dueDate},
+        Title = ${newTitle},
+        Description = ${newDescription},
+        ProjectId = ${newProjectId},
+        EmployeeId = ${newEmployeeId},
+        Status = ${newStatus},
+        Priority = ${newPriority},
+        DueDate = ${newDueDate},
+        Progress = ${newProgress},
         UpdatedAt = GETDATE()
       WHERE Id = ${id}
     `;
@@ -89,6 +150,7 @@ exports.updateTask = async (req, res) => {
 
     res.json({ message: '✅ Task updated successfully' });
   } catch (error) {
+    console.error('Error updating task:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -105,6 +167,7 @@ exports.deleteTask = async (req, res) => {
 
     res.json({ message: '🗑️ Task deleted successfully' });
   } catch (error) {
+    console.error('Error deleting task:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -113,31 +176,48 @@ exports.deleteTask = async (req, res) => {
 exports.filterTasks = async (req, res) => {
   try {
     const { filterType, filterValue } = req.params;
-    let query;
+    let result;
+    let columnName;
+    let inputType;
 
     switch (filterType.toLowerCase()) {
       case 'employee':
-        query = sql.query`
-          SELECT * FROM Tasks WHERE EmployeeId = ${filterValue}
-        `;
+        columnName = 't.EmployeeId';
+        inputType = sql.Int;
         break;
       case 'project':
-        query = sql.query`
-          SELECT * FROM Tasks WHERE ProjectId = ${filterValue}
-        `;
+        columnName = 't.ProjectId';
+        inputType = sql.Int;
         break;
       case 'status':
-        query = sql.query`
-          SELECT * FROM Tasks WHERE Status = ${filterValue}
-        `;
+        columnName = 't.Status';
+        inputType = sql.VarChar(50);
         break;
       default:
-        return res.status(400).json({ message: 'Invalid filter type' });
+        return res.status(400).json({ message: 'Invalid filter type. Must be employee, project, or status.' });
     }
 
-    const result = await query;
+    const finalQuery = `
+        SELECT 
+            t.*, 
+            e.Name AS AssignedToName, 
+            cb.Name AS CreatedByName,
+            p.Name AS ProjectName
+        FROM Tasks t
+        LEFT JOIN Employees e ON t.EmployeeId = e.Id
+        LEFT JOIN Employees cb ON t.CreatedBy = cb.Id
+        LEFT JOIN Projects p ON t.ProjectId = p.Id
+        WHERE ${columnName} = @filterValue
+        ORDER BY t.CreatedAt DESC
+    `;
+    const request = new sql.Request();
+    request.input('filterValue', inputType, filterValue);
+    
+    result = await request.query(finalQuery);
+
     res.json(result.recordset);
   } catch (error) {
+    console.error('Error filtering tasks:', error.message);
     res.status(500).json({ error: error.message });
   }
 };

@@ -10,23 +10,18 @@ const JWT_SECRET = process.env.JWT_SECRET || 'yourSuperSecretKey';
 // =======================
 exports.getEmployees = async (req, res) => {
   try {
+    // Query simplified: RoleId and DepartmentId columns/joins removed.
     const result = await sql.query`
-      SELECT 
-        e.Id, 
-        e.Name, 
-        e.Email, 
-        e.RoleId, 
-        e.DepartmentId, 
-        e.CreatedAt,
-        e.UpdatedAt,
-        e.IsActive,
-        r.Name AS RoleName, 
-        d.Name AS DepartmentName
-      FROM Employees e
-      LEFT JOIN Roles r ON e.RoleId = r.Id
-      LEFT JOIN Departments d ON e.DepartmentId = d.Id
-      ORDER BY e.CreatedAt DESC
-    `;
+            SELECT 
+                Id, 
+                Name, 
+                Email, 
+                CreatedAt,
+                UpdatedAt,
+                IsActive
+            FROM Employees
+            ORDER BY CreatedAt DESC
+        `;
     res.status(200).json(result.recordset);
   } catch (error) {
     console.error('Error fetching employees:', error);
@@ -41,23 +36,18 @@ exports.getEmployeeById = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Query simplified: RoleId and DepartmentId columns/joins removed.
     const result = await sql.query`
-      SELECT 
-        e.Id, 
-        e.Name, 
-        e.Email, 
-        e.RoleId, 
-        e.DepartmentId, 
-        e.CreatedAt,
-        e.UpdatedAt,
-        e.IsActive,
-        r.Name AS RoleName, 
-        d.Name AS DepartmentName
-      FROM Employees e
-      LEFT JOIN Roles r ON e.RoleId = r.Id
-      LEFT JOIN Departments d ON e.DepartmentId = d.Id
-      WHERE e.Id = ${id}
-    `;
+            SELECT 
+                Id, 
+                Name, 
+                Email, 
+                CreatedAt,
+                UpdatedAt,
+                IsActive
+            FROM Employees
+            WHERE Id = ${id}
+        `;
 
     if (result.recordset.length === 0)
       return res.status(404).json({ message: 'Employee not found' });
@@ -74,20 +64,23 @@ exports.getEmployeeById = async (req, res) => {
 // =======================
 exports.createEmployee = async (req, res) => {
   try {
-    const { name, email, password, roleId, departmentId } = req.body;
+    // RoleId and DepartmentId removed from destructuring
+    const { name, email, password } = req.body;
 
-    if (!name || !email || !password || !roleId)
+    // Validation updated
+    if (!name || !email || !password)
       return res
         .status(400)
-        .json({ message: 'Name, Email, Password, and RoleId are required.' });
+        .json({ message: 'Name, Email, and Password are required.' });
 
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // SQL insert simplified
     await sql.query`
-      INSERT INTO Employees (Name, Email, PasswordHash, RoleId, DepartmentId, CreatedAt, UpdatedAt, IsActive)
-      VALUES (${name}, ${email}, ${passwordHash}, ${roleId}, ${departmentId}, GETDATE(), GETDATE(), 1)
-    `;
+            INSERT INTO Employees (Name, Email, PasswordHash, CreatedAt, UpdatedAt, IsActive)
+            VALUES (${name}, ${email}, ${passwordHash}, GETDATE(), GETDATE(), 1)
+        `;
 
     res.status(201).json({ message: 'Employee created successfully' });
   } catch (error) {
@@ -104,35 +97,39 @@ exports.createEmployee = async (req, res) => {
 exports.updateEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, password, roleId, departmentId, isActive } = req.body;
+    // RoleId and DepartmentId removed from destructuring
+    const { name, email, password, isActive } = req.body;
 
-    // Build dynamic update
+    // Build dynamic password update
     let passwordClause = '';
     if (password) {
       const passwordHash = await bcrypt.hash(password, 10);
-      passwordClause = `, PasswordHash = '${passwordHash}'`;
+      passwordClause = `, PasswordHash = @passwordHash`;
     }
 
+    // SQL update query simplified
     const query = `
-      UPDATE Employees
-      SET 
-        Name = @name,
-        Email = @email,
-        RoleId = @roleId,
-        DepartmentId = @departmentId,
-        IsActive = @isActive,
-        UpdatedAt = GETDATE()
-        ${passwordClause}
-      WHERE Id = @id
-    `;
+            UPDATE Employees
+            SET 
+                Name = @name,
+                Email = @email,
+                IsActive = @isActive,
+                UpdatedAt = GETDATE()
+                ${passwordClause}
+            WHERE Id = @id
+        `;
 
     const request = new sql.Request();
     request.input('id', sql.Int, id);
     request.input('name', sql.VarChar(100), name);
     request.input('email', sql.VarChar(150), email);
-    request.input('roleId', sql.Int, roleId);
-    request.input('departmentId', sql.Int, departmentId);
     request.input('isActive', sql.Bit, isActive ?? 1);
+
+    // Add password hash input only if password was provided
+    if (password) {
+      const passwordHash = await bcrypt.hash(password, 10);
+      request.input('passwordHash', sql.VarChar(255), passwordHash);
+    }
 
     const result = await request.query(query);
 
@@ -154,8 +151,8 @@ exports.deleteEmployee = async (req, res) => {
     const { id } = req.params;
 
     const result = await sql.query`
-      UPDATE Employees SET IsActive = 0, UpdatedAt = GETDATE() WHERE Id = ${id}
-    `;
+            UPDATE Employees SET IsActive = 0, UpdatedAt = GETDATE() WHERE Id = ${id}
+        `;
 
     if (result.rowsAffected[0] === 0)
       return res.status(404).json({ message: 'Employee not found' });
@@ -177,11 +174,12 @@ exports.loginEmployee = async (req, res) => {
     if (!email || !password)
       return res.status(400).json({ message: 'Email and Password are required.' });
 
+    // SQL query simplified (RoleId removed)
     const result = await sql.query`
-      SELECT Id, Name, Email, PasswordHash, RoleId, IsActive 
-      FROM Employees 
-      WHERE Email = ${email}
-    `;
+            SELECT Id, Name, Email, PasswordHash, IsActive 
+            FROM Employees 
+            WHERE Email = ${email}
+        `;
 
     if (result.recordset.length === 0)
       return res.status(401).json({ message: 'Invalid email or password.' });
@@ -196,12 +194,12 @@ exports.loginEmployee = async (req, res) => {
     if (!isMatch)
       return res.status(401).json({ message: 'Invalid email or password.' });
 
-    // Generate JWT token
+    // Generate JWT token (roleId removed from payload)
     const token = jwt.sign(
       {
         id: employee.Id,
         email: employee.Email,
-        roleId: employee.RoleId,
+        // roleId removed
       },
       JWT_SECRET,
       { expiresIn: '8h' }
@@ -214,7 +212,7 @@ exports.loginEmployee = async (req, res) => {
         id: employee.Id,
         name: employee.Name,
         email: employee.Email,
-        roleId: employee.RoleId,
+        // roleId removed
       },
     });
   } catch (error) {

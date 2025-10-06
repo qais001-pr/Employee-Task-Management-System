@@ -5,21 +5,18 @@ exports.getProjects = async (req, res) => {
   try {
     const result = await sql.query`
       SELECT 
-        p.Id,
-        p.Name,
-        p.Description,
-        p.DepartmentId,
-        d.Name AS DepartmentName,
-        p.StartDate,
-        p.EndDate,
-        p.Budget,
-        p.Progress,
-        p.Status,
-        p.CreatedAt,
-        p.UpdatedAt
-      FROM Projects p
-      LEFT JOIN Departments d ON p.DepartmentId = d.Id
-      ORDER BY p.CreatedAt DESC;
+        Id,
+        Name,
+        Description,
+        StartDate,
+        EndDate,
+        Budget,
+        Progress,
+        Status,
+        CreatedAt,
+        UpdatedAt
+      FROM Projects
+      ORDER BY CreatedAt DESC;
     `;
 
     res.json(result.recordset);
@@ -36,21 +33,18 @@ exports.getProjectById = async (req, res) => {
 
     const result = await sql.query`
       SELECT 
-        p.Id,
-        p.Name,
-        p.Description,
-        p.DepartmentId,
-        d.Name AS DepartmentName,
-        p.StartDate,
-        p.EndDate,
-        p.Budget,
-        p.Progress,
-        p.Status,
-        p.CreatedAt,
-        p.UpdatedAt
-      FROM Projects p
-      LEFT JOIN Departments d ON p.DepartmentId = d.Id
-      WHERE p.Id = ${id};
+        Id,
+        Name,
+        Description,
+        StartDate,
+        EndDate,
+        Budget,
+        Progress,
+        Status,
+        CreatedAt,
+        UpdatedAt
+      FROM Projects
+      WHERE Id = ${id};
     `;
 
     if (result.recordset.length === 0)
@@ -69,13 +63,12 @@ exports.createProject = async (req, res) => {
     const {
       name,
       description,
-      departmentId,
       startDate,
       endDate,
       budget,
       progress,
       status
-    } = req.body;
+    } = req.body; // departmentId removed
 
     if (!name) {
       return res.status(400).json({ message: 'Project name is required.' });
@@ -91,11 +84,10 @@ exports.createProject = async (req, res) => {
 
     const result = await sql.query`
       INSERT INTO Projects
-      (Name, Description, DepartmentId, StartDate, EndDate, Budget, Progress, Status, CreatedAt, UpdatedAt)
+      (Name, Description, StartDate, EndDate, Budget, Progress, Status, CreatedAt, UpdatedAt)
       VALUES (
         ${name},
         ${description || null},
-        ${departmentId || null},
         ${startDate || null},
         ${endDate || null},
         ${budget || 0},
@@ -126,13 +118,12 @@ exports.updateProject = async (req, res) => {
     const {
       name,
       description,
-      departmentId,
       startDate,
       endDate,
       budget,
       progress,
       status
-    } = req.body;
+    } = req.body; // departmentId removed
 
     // Check if project exists
     const existing = await sql.query`SELECT Id, Name FROM Projects WHERE Id = ${id}`;
@@ -155,7 +146,6 @@ exports.updateProject = async (req, res) => {
       SET 
         Name = ${name || existing.recordset[0].Name},
         Description = ${description || null},
-        DepartmentId = ${departmentId || null},
         StartDate = ${startDate || null},
         EndDate = ${endDate || null},
         Budget = ${budget || 0},
@@ -181,11 +171,14 @@ exports.deleteProject = async (req, res) => {
     if (result.recordset.length === 0)
       return res.status(404).json({ message: 'Project not found.' });
 
+    // Note: Deleting a project will fail if there are existing tasks referencing it.
+    // In a real application, you would either soft-delete or cascade delete related tasks.
     await sql.query`DELETE FROM Projects WHERE Id = ${id};`;
 
     res.json({ message: 'Project deleted successfully.' });
   } catch (err) {
     console.error('Error deleting project:', err);
+    // Error will likely be 'Foreign key violation' if tasks exist
     res.status(500).json({ error: err.message });
   }
 };

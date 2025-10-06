@@ -1,6 +1,6 @@
 # 🧠 **Employee Task Management System – Backend**
 
-A complete backend system built using **Node.js**, **Express.js**, and **MSSQL**, designed to manage employees, projects, tasks, timesheets, and comments — all with **JWT-based authentication** and **role-based access control**.
+A complete backend system built using **Node.js**, **Express.js**, and **MSSQL**, designed to manage employees, projects, tasks, with **JWT-based authentication** and **role-based access control**.
 
 ---
 
@@ -25,24 +25,14 @@ EmployeeTaskBackend/
 ├── controller/
 │   ├── authController.js
 │   ├── employeeController.js
-│   ├── departmentController.js
 │   ├── projectController.js
 │   ├── taskController.js
-│   ├── taskTrackingController.js
-│   ├── timesheetController.js
-│   ├── commentController.js
-│   └── roleController.js
 │
 ├── routes/
 │   ├── authRoutes.js
 │   ├── employeeRoutes.js
-│   ├── departmentRoutes.js
 │   ├── projectRoutes.js
 │   ├── taskRoutes.js
-│   ├── taskTrackingRoutes.js
-│   ├── timesheetRoutes.js
-│   ├── commentRoutes.js
-│   └── roleRoutes.js
 │
 ├──── connectionDb.js
 │  
@@ -75,7 +65,7 @@ PORT=5000
 DB_USER=your_sql_username
 DB_PASSWORD=your_sql_password
 DB_SERVER=localhost
-DB_DATABASE=EmployeeTaskDB
+DB_DATABASE=EmployeeTaskDatabase
 JWT_SECRET=your_secret_key
 ```
 
@@ -94,13 +84,7 @@ http://localhost:5000
 ---
 
 ## 🗃️ **Database Setup**
-Works
-
-Run the provided SQL script [EmployeeTaskDB.sql](https://github.com/qais001-pr/Employee-Task-Management-System/blob/main/backEnd/data/EmployeeTaskDb.sql) in **SQL Server Management Studio**  to create all required tables.
-
-OR
-
-use the txt file to run the queries from it on sql to create a database and tables 
+Use the txt file to run the queries from it on sql to create a database and tables 
 [EmployeeTaskDb Txt File](https://github.com/qais001-pr/Employee-Task-Management-System/blob/main/backEnd/data/tableCreationQueries.txt)
 
 ---
@@ -139,17 +123,6 @@ use the txt file to run the queries from it on sql to create a database and tabl
 
 ---
 
-## 🧭 **Department Routes**
-
-| Method | Endpoint | Description |
-|--------|-----------|-------------|
-| GET | `/api/departments` | Get all departments |
-| GET | `/api/departments/:id` | Get department by ID |
-| POST | `/api/departments` | Add department |
-| PUT | `/api/departments/:id` | Update department |
-| DELETE | `/api/departments/:id` | Delete department |
-
----
 
 ## 🏗️ **Project Routes**
 
@@ -178,53 +151,6 @@ use the txt file to run the queries from it on sql to create a database and tabl
 
 ---
 
-## 📈 **Task Tracking Routes**
-
-| Method | Endpoint | Description |
-|--------|-----------|-------------|
-| GET | `/api/tracking` | Get all task |
-| GET | `/api/tracking/task/:id` | Get Tracking By Task ID |
-| POST | `/api/tracking` | Create new task tracking |
-| DELETE | `/api/tracking/:id` | Delete Task Tracking |
-
----
-
-## 🕒 **Timesheet Routes**
-
-| Method | Endpoint | Description |
-|--------|-----------|-------------|
-| GET | `/api/timesheets` | Get all timesheets |
-| GET | `/api/timesheets/:id` | Get timesheet by ID |
-| POST | `/api/timesheets` | Log new timesheet |
-| PUT | `/api/timesheets/:id` | Update timesheet |
-| DELETE | `/api/timesheets/:id` | Delete timesheet |
-| GET | `/api/timesheets/employee/:id` | TimeSheet By Employee Id |
-
----
-
-## 💬 **Comment Routes**
-
-| Method | Endpoint | Description |
-|--------|-----------|-------------|
-| GET | `/api/comments/:taskId` | Get comments for a task |
-| POST | `/api/comments` | Add new comment |
-| GET | `/api/comments/task/:id` | GET comments by Task ID |
-| GET | `/api/comments/employee/:id` | GET comments by Employee ID |
-| PUT | `/api/comments/:id` | Update Task |
-| DELETE | `/api/comments/:id` | Delete comment |
-
----
-
-## 🧩 **Role Routes**
-
-| Method | Endpoint | Description |
-|--------|-----------|-------------|
-| GET | `/api/roles/` | Get all roles |
-| POST | `/api/roles` | Create new role |
-| GET | `/api/roles/1` | Get Role By Id |
-| PUT | `/api/roles/1` | Update roles |
-| DELETE | `/api/roles/4` | Delete roles |
----
 
 ## 🧪 **Postman Testing Guide**
 
