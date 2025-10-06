@@ -1,0 +1,59 @@
+CREATE TRIGGER InsteadOfDeleteProject
+ON Projects
+INSTEAD OF DELETE
+AS
+BEGIN
+    -- This transaction ensures both the task deletion and project deletion succeed or fail together.
+    SET NOCOUNT ON;
+
+    -- 1. Delete all related tasks first.
+    -- We join the Tasks table with the 'deleted' pseudo-table to get the IDs of projects
+    -- that the user attempted to delete.
+    DELETE T
+    FROM Tasks T
+    INNER JOIN deleted D ON T.ProjectId = D.Id;
+
+    -- 2. Now delete the project itself from the Projects table.
+    -- We delete all projects whose IDs are in the 'deleted' pseudo-table.
+    DELETE P
+    FROM Projects P
+    INNER JOIN deleted D ON P.Id = D.Id;
+
+    PRINT 'Project(s) and associated Task(s) deleted successfully via INSTEAD OF trigger.';
+END
+GO
+
+
+
+
+
+
+
+
+CREATE TRIGGER InsteadOfDeleteEmployee
+ON Employees
+INSTEAD OF DELETE
+AS
+BEGIN
+    -- Disable row count for performance
+    SET NOCOUNT ON;
+
+    -- 1. Update the Tasks table to handle foreign key dependencies (EmployeeId and CreatedBy)
+    -- It's safest to set these foreign key columns to NULL for tasks that are not yet deleted,
+    -- though in this specific trigger, we are deleting the tasks first.
+
+    -- 2. Delete all tasks where the deleted employee was either the assigned EmployeeId OR the CreatedBy.
+    -- The 'deleted' pseudo-table holds the Ids of the employees being deleted.
+    DELETE T
+    FROM Tasks T
+    INNER JOIN deleted D ON T.EmployeeId = D.Id OR T.CreatedBy = D.Id;
+    
+    -- 3. Now delete the employee record(s) from the Employees table.
+    -- This step runs after the dependency (Tasks) is cleared.
+    DELETE E
+    FROM Employees E
+    INNER JOIN deleted D ON E.Id = D.Id;
+
+    PRINT 'Employee(s) and all associated Task(s) deleted successfully via INSTEAD OF trigger.';
+END
+GO

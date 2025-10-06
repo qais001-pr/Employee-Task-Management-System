@@ -3,9 +3,10 @@
 /* eslint-disable semi */
 import React from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import HomeButton from './tabNavigation/HomeScreen'
-import Projects from './tabNavigation/Projects'
-import Employee from './tabNavigation/Employee'
+import HomeButton from './Tab/HomeScreen'
+import Projects from './Tab/Projects'
+import Employee from './Tab/Employee'
+import Tasks from './Tab/Tasks'
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6'
 import { StyleSheet, View } from 'react-native'
 
@@ -17,8 +18,9 @@ export default function HomeScreen() {
             <Tab.Navigator
                 screenOptions={({ route }) => ({
                     headerShown: false,
-                    tabBarActiveTintColor: '#007BFF',
-                    tabBarInactiveTintColor: '#888',
+                    // Using the primary color (#4F46E5) 
+                    tabBarActiveTintColor: '#4F46E5', 
+                    tabBarInactiveTintColor: '#9CA3AF', 
                     tabBarLabelStyle: styles.tabLabel,
                     tabBarStyle: styles.tabBar,
                     tabBarIcon: ({ focused, color }) => {
@@ -29,14 +31,16 @@ export default function HomeScreen() {
                         } else if (route.name === 'Employees') {
                             iconName = focused ? 'users' : 'user-group'
                         } else if (route.name === 'Projects') {
-                            iconName = focused ? 'folder' : 'folder-open'
-                        } else if (route.name === 'Departments') {
-                            iconName = focused ? 'building' : 'building-user'
+                            // Using a closed/open folder icon pair
+                            iconName = focused ? 'folder-closed' : 'folder-open'
+                        } else if (route.name === 'Tasks') {
+                            // Icon logic updated to handle 'Tasks' tab
+                            iconName = focused ? 'list-check' : 'clipboard-list'
                         }
 
                         return (
                             <View style={styles.iconContainer}>
-                                <FontAwesome6 name={iconName} size={18} color={color} />
+                                <FontAwesome6 name={iconName} size={19} color={color} />
                             </View>
                         )
                     },
@@ -58,6 +62,11 @@ export default function HomeScreen() {
                     component={Employee}
                     options={{ tabBarLabel: 'Employees' }}
                 />
+                <Tab.Screen
+                    name='Tasks' // Added the 'Tasks' screen
+                    component={Tasks}
+                    options={{ tabBarLabel: 'Tasks' }}
+                />
             </Tab.Navigator>
         </View>
     )
@@ -66,28 +75,29 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#f9f9f9',
+        backgroundColor: '#f3f4f6', // Light gray background
     },
     tabBar: {
         backgroundColor: '#fff',
         borderTopWidth: 0,
-        elevation: 10,
+        elevation: 15, // Android shadow
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: -5 }, // Shadow upwards
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
         height: 65,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        borderTopLeftRadius: 25, // Rounded corners for a modern look
+        borderTopRightRadius: 25,
         position: 'absolute',
         left: 0,
         right: 0,
         bottom: 0,
         paddingBottom: 5,
+        paddingHorizontal: 5,
     },
     tabLabel: {
-        fontSize: 12,
-        fontWeight: '600',
+        fontSize: 11,
+        fontWeight: '700', // Slightly bolder label
         paddingBottom: 5,
     },
     iconContainer: {

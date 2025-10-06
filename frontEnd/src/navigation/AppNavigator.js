@@ -11,11 +11,8 @@ import Splash from '../screens/Mock/Splash';
 
 // Admin Authentication
 import AdminLogin from '../screens/Admin/AdminLogin';
-// Admin TabScreen Navigation
 import HomeScreenAdmin from '../screens/Admin/HomeScreen';
-
 // Employee Authentication
-import EmployeeRegister from '../screens/Auth/Register';
 import EmployeeLogin from '../screens/Auth/Login';
 
 export default function AppNavigator() {
@@ -26,12 +23,6 @@ export default function AppNavigator() {
                 <Stack.Screen
                     name='Splash'
                     component={Splash}
-                />
-
-                {/* Employee Authentication */}
-                <Stack.Screen
-                    name='Register'
-                    component={EmployeeRegister}
                 />
                 <Stack.Screen
                     name='Login'

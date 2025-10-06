@@ -149,9 +149,9 @@ exports.updateEmployee = async (req, res) => {
 exports.deleteEmployee = async (req, res) => {
   try {
     const { id } = req.params;
-
+    console.log(id)
     const result = await sql.query`
-            UPDATE Employees SET IsActive = 0, UpdatedAt = GETDATE() WHERE Id = ${id}
+            DELETE Employees WHERE Id = ${id}
         `;
 
     if (result.rowsAffected[0] === 0)
