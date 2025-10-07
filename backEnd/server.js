@@ -6,7 +6,6 @@ const bodyParser = require('body-parser');
 const { connectDB } = require('./connectionDb'); // your MSSQL connection setup
 
 // Import all route modules
-const authRoutes = require('./routes/authRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const taskRoutes = require('./routes/taskRoutes');
@@ -23,7 +22,6 @@ app.use(express.json());
 connectDB();
 
 // Public routes
-app.use('/api/auth', authRoutes);
 
 // Protected / Main routes
 app.use('/api/employees', employeeRoutes);

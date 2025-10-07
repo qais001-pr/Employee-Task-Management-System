@@ -176,7 +176,7 @@ exports.loginEmployee = async (req, res) => {
 
     // SQL query simplified (RoleId removed)
     const result = await sql.query`
-            SELECT Id, Name, Email, PasswordHash, IsActive 
+            SELECT Id, Name, Email, PasswordHash, IsActive ,roles
             FROM Employees 
             WHERE Email = ${email}
         `;
@@ -212,6 +212,7 @@ exports.loginEmployee = async (req, res) => {
         id: employee.Id,
         name: employee.Name,
         email: employee.Email,
+        roles: employee.roles
         // roleId removed
       },
     });

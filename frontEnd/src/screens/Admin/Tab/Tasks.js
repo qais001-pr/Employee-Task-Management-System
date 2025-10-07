@@ -14,14 +14,9 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6';
-
-// Base API URL
-// NOTE: Ensure '../../../../config' and ipAddress are correctly set up in your project
-// const BASE_API = ipAddress; 
-// *** Using a placeholder for BASE_API, assuming your imports handle the correct URL ***
 import { ipAddress } from '../../../../config';
-const BASE_API = `${ipAddress}`; // Placeholder IP
-const TASKS_API = `${BASE_API}/tasks/`;
+const BASE_API = `${ipAddress}`;
+const TASKS_API = `${ipAddress}/tasks/`;
 
 // Helper function to format dates
 const formatDate = (dateString) => {
@@ -30,7 +25,8 @@ const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString();
 };
 
-// --- Task Card Component (NO CHANGE) ---
+
+
 const TaskCard = ({ task, onDelete, onEdit }) => {
     const getStatusColor = (status) => {
         switch (status) {

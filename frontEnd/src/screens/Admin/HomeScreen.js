@@ -7,6 +7,7 @@ import HomeButton from './Tab/HomeScreen'
 import Projects from './Tab/Projects'
 import Employee from './Tab/Employee'
 import Tasks from './Tab/Tasks'
+import Profile from './Tab/Profile'
 import FontAwesome6 from 'react-native-vector-icons/FontAwesome6'
 import { StyleSheet, View } from 'react-native'
 
@@ -19,8 +20,8 @@ export default function HomeScreen() {
                 screenOptions={({ route }) => ({
                     headerShown: false,
                     // Using the primary color (#4F46E5) 
-                    tabBarActiveTintColor: '#4F46E5', 
-                    tabBarInactiveTintColor: '#9CA3AF', 
+                    tabBarActiveTintColor: '#4F46E5',
+                    tabBarInactiveTintColor: '#9CA3AF',
                     tabBarLabelStyle: styles.tabLabel,
                     tabBarStyle: styles.tabBar,
                     tabBarIcon: ({ focused, color }) => {
@@ -31,11 +32,12 @@ export default function HomeScreen() {
                         } else if (route.name === 'Employees') {
                             iconName = focused ? 'users' : 'user-group'
                         } else if (route.name === 'Projects') {
-                            // Using a closed/open folder icon pair
                             iconName = focused ? 'folder-closed' : 'folder-open'
                         } else if (route.name === 'Tasks') {
-                            // Icon logic updated to handle 'Tasks' tab
                             iconName = focused ? 'list-check' : 'clipboard-list'
+                        }
+                        else if (route.name === 'Profile') {
+                            iconName = focused ? 'user' : 'user';
                         }
 
                         return (
@@ -66,6 +68,11 @@ export default function HomeScreen() {
                     name='Tasks' // Added the 'Tasks' screen
                     component={Tasks}
                     options={{ tabBarLabel: 'Tasks' }}
+                />
+                <Tab.Screen
+                    name='Profile' // Added the 'Tasks' screen
+                    component={Profile}
+                    options={{ tabBarLabel: 'Profile' }}
                 />
             </Tab.Navigator>
         </View>

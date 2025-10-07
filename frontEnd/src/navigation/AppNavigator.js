@@ -14,11 +14,11 @@ import AdminLogin from '../screens/Admin/AdminLogin';
 import HomeScreenAdmin from '../screens/Admin/HomeScreen';
 // Employee Authentication
 import EmployeeLogin from '../screens/Auth/Login';
-
+import EmployeeHomeScreen from '../screens/Employee/HomeScreen';
 export default function AppNavigator() {
     return (
         <NavigationContainer>
-            <Stack.Navigator initialRouteName='HomeScreenAdmin' screenOptions={{ headerShown: false }}>
+            <Stack.Navigator initialRouteName='AdminLogin' screenOptions={{ headerShown: false }}>
                 {/* Splash Screen */}
                 <Stack.Screen
                     name='Splash'
@@ -27,6 +27,10 @@ export default function AppNavigator() {
                 <Stack.Screen
                     name='Login'
                     component={EmployeeLogin}
+                />
+                <Stack.Screen
+                    name='EmployeeHomeScreen'
+                    component={EmployeeHomeScreen}
                 />
 
                 {/* Admin Authentication */}

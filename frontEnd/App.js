@@ -3,10 +3,13 @@
 
 import React from 'react'
 import AppNavigator from './src/navigation/AppNavigator'
+import { AuthProvider } from './context/auth'
 export default function App() {
   return (
     <>
-      <AppNavigator />
+      <AuthProvider>
+        <AppNavigator />
+      </AuthProvider>
     </>
   )
 }

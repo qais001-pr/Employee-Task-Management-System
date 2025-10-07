@@ -45,7 +45,6 @@ exports.getTaskById = async (req, res) => {
 
     res.json(result.recordset[0]);
   } catch (error) {
-    console.error('Error fetching task by ID:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -53,16 +52,16 @@ exports.getTaskById = async (req, res) => {
 // 📍 Create a new task
 exports.createTask = async (req, res) => {
   try {
-    const { 
-        title, 
-        description, 
-        projectId, 
-        employeeId, 
-        createdBy, // Important: should typically come from req.user.id (auth token)
-        status, 
-        priority, 
-        dueDate, 
-        progress 
+    const {
+      title,
+      description,
+      projectId,
+      employeeId,
+      createdBy, // Important: should typically come from req.user.id (auth token)
+      status,
+      priority,
+      dueDate,
+      progress
     } = req.body;
 
     if (!title || !projectId || !createdBy) {
@@ -86,12 +85,11 @@ exports.createTask = async (req, res) => {
       );
       SELECT SCOPE_IDENTITY() AS Id;
     `;
-    
+
     const newId = result.recordset[0]?.Id;
 
     res.status(201).json({ message: '✅ Task created successfully', taskId: newId });
   } catch (error) {
-    console.error('Error creating task:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -100,24 +98,24 @@ exports.createTask = async (req, res) => {
 exports.updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { 
-        title, 
-        description, 
-        projectId, 
-        employeeId, 
-        status, 
-        priority, 
-        dueDate, 
-        progress 
+    const {
+      title,
+      description,
+      projectId,
+      employeeId,
+      status,
+      priority,
+      dueDate,
+      progress
     } = req.body;
 
     // Fetch existing task to ensure it exists and get current values for partial update
     const existingTaskResult = await sql.query`SELECT * FROM Tasks WHERE Id = ${id}`;
     if (existingTaskResult.recordset.length === 0) {
-        return res.status(404).json({ message: 'Task not found' });
+      return res.status(404).json({ message: 'Task not found' });
     }
     const existingTask = existingTaskResult.recordset[0];
-    
+
     // Use nullish coalescing (??) to retain the existing value if the new value is undefined or null
     const newTitle = title ?? existingTask.Title;
     const newDescription = description ?? existingTask.Description;
@@ -150,7 +148,6 @@ exports.updateTask = async (req, res) => {
 
     res.json({ message: '✅ Task updated successfully' });
   } catch (error) {
-    console.error('Error updating task:', error.message);
     res.status(500).json({ error: error.message });
   }
 };
@@ -212,7 +209,7 @@ exports.filterTasks = async (req, res) => {
     `;
     const request = new sql.Request();
     request.input('filterValue', inputType, filterValue);
-    
+
     result = await request.query(finalQuery);
 
     res.json(result.recordset);

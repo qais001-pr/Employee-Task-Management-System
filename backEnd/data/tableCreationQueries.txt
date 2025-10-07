@@ -56,4 +56,8 @@ CREATE TABLE Tasks (
     FOREIGN KEY (EmployeeId) REFERENCES Employees(Id),
     FOREIGN KEY (CreatedBy) REFERENCES Employees(Id)
 );
+
+  ALTER TABLE Employees
+ADD roles varchar(max) DEFAULT 'employee';
+
 GO
